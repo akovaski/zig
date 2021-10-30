@@ -550,6 +550,103 @@ pub const Target = struct {
         }
     };
 
+    /// processor specific ABI
+    pub const TargetAbi = enum {
+        //TODO add ARM, Mips, and PowerPC
+        ilp32,
+        ilp32d,
+        ilp32e,
+        ilp32f,
+        lp64,
+        lp64d,
+        lp64f,
+
+        const Riscv32ABI = struct {
+            fn default(features: Cpu.Feature.Set) TargetAbi {
+                if (riscv.featureSetHas(features, .d)) {
+                    return .ilp32d;
+                } else if (riscv.featureSetHas(features, .e)) {
+                    return .ilp32e;
+                } else {
+                    return .ilp32;
+                }
+            }
+            fn validate(target_abi: TargetAbi, features: Cpu.Feature.Set) ParseError!void {
+                const has_e = riscv.featureSetHas(features, .e);
+                const has_f = riscv.featureSetHas(features, .f);
+                const has_d = riscv.featureSetHas(features, .d);
+                return switch (target_abi) {
+                    .ilp32e => if (has_e) void{} else error.FeatureAbiMismatch,
+                    .ilp32 => if (!has_e) void{} else error.FeatureAbiMismatch,
+                    .ilp32f => if (!has_e and has_f) void{} else error.FeatureAbiMismatch,
+                    .ilp32d => if (!has_e and has_d) void{} else error.FeatureAbiMismatch,
+                    else => error.ArchAbiMismatch,
+                };
+            }
+        };
+        const Riscv64ABI = struct {
+            fn default(features: Cpu.Feature.Set) TargetAbi {
+                if (riscv.featureSetHas(features, .d)) {
+                    return .lp64d;
+                } else {
+                    return .lp64;
+                }
+            }
+            fn validate(target_abi: TargetAbi, features: Cpu.Feature.Set) ParseError!void {
+                const has_f = riscv.featureSetHas(features, .f);
+                const has_d = riscv.featureSetHas(features, .d);
+                return switch (target_abi) {
+                    .lp64 => void{},
+                    .lp64f => if (has_f) void{} else error.FeatureAbiMismatch,
+                    .lp64d => if (has_d) void{} else error.FeatureAbiMismatch,
+                    else => error.ArchAbiMismatch,
+                };
+            }
+        };
+        pub fn default(arch: Cpu.Arch, features: Cpu.Feature.Set) ?TargetAbi {
+            return switch (arch) {
+                .riscv32 => Riscv32ABI.default(features),
+                .riscv64 => Riscv64ABI.default(features),
+                else => null,
+            };
+        }
+
+        // re-implementing @tagName because @tagName is not null-terminated in the stage0 compiler
+        fn tagName(value: anytype) [:0]const u8 {
+            const T = @TypeOf(value);
+            const info = @typeInfo(T);
+
+            switch (info) {
+                .Enum => |enum_info| {
+                    comptime var names: [enum_info.fields.len][:0]const u8 = undefined;
+                    inline for (enum_info.fields) |field, i| {
+                        names[i] = field.name ++ [0:0]u8{};
+                    }
+                    return names[@enumToInt(value)];
+                },
+                else => @compileError("tagName does not support type " ++ @typeName(T) ++ "."),
+            }
+        }
+        pub fn string(self: TargetAbi) [:0]const u8 {
+            return tagName(self);
+        }
+        pub const ParseError = error{
+            InvalidAbi,
+            ArchAbiMismatch,
+            FeatureAbiMismatch,
+        };
+        pub fn parse(cpu: Cpu, abi_string: []const u8) ParseError!TargetAbi {
+            const target_abi = std.meta.stringToEnum(TargetAbi, abi_string) orelse return error.InvalidAbi;
+
+            switch (cpu.arch) {
+                .riscv32 => try Riscv32ABI.validate(target_abi, cpu.features),
+                .riscv64 => try Riscv64ABI.validate(target_abi, cpu.features),
+                else => return error.ArchAbiMismatch,
+            }
+            return target_abi;
+        }
+    };
+
     pub const ObjectFormat = enum {
         /// Common Object File Format (Windows)
         coff,

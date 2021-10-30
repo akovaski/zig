@@ -1447,6 +1447,7 @@ pub const LibExeObjStep = struct {
     filter: ?[]const u8,
     single_threaded: bool,
     test_evented_io: bool = false,
+    target_abi: ?std.Target.TargetAbi = null,
     code_model: std.builtin.CodeModel = .default,
     wasi_exec_model: ?std.builtin.WasiExecModel = null,
 
@@ -2432,6 +2433,9 @@ pub const LibExeObjStep = struct {
             try zig_args.append("-rdynamic");
         }
 
+        if (self.target_abi) |target_abi| {
+            try zig_args.append(builder.fmt("-mabi={s}", .{target_abi.string()}));
+        }
         if (self.code_model != .default) {
             try zig_args.append("-mcmodel");
             try zig_args.append(@tagName(self.code_model));
