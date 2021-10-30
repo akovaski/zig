@@ -611,25 +611,6 @@ pub const Target = struct {
             };
         }
 
-        // re-implementing @tagName because @tagName is not null-terminated in the stage0 compiler
-        fn tagName(value: anytype) [:0]const u8 {
-            const T = @TypeOf(value);
-            const info = @typeInfo(T);
-
-            switch (info) {
-                .Enum => |enum_info| {
-                    comptime var names: [enum_info.fields.len][:0]const u8 = undefined;
-                    inline for (enum_info.fields) |field, i| {
-                        names[i] = field.name ++ [0:0]u8{};
-                    }
-                    return names[@enumToInt(value)];
-                },
-                else => @compileError("tagName does not support type " ++ @typeName(T) ++ "."),
-            }
-        }
-        pub fn string(self: TargetAbi) [:0]const u8 {
-            return tagName(self);
-        }
         pub const ParseError = error{
             InvalidAbi,
             ArchAbiMismatch,

@@ -2434,7 +2434,7 @@ pub const LibExeObjStep = struct {
         }
 
         if (self.target_abi) |target_abi| {
-            try zig_args.append(builder.fmt("-mabi={s}", .{target_abi.string()}));
+            try zig_args.append(builder.fmt("-mabi={s}", .{@tagName(target_abi)}));
         }
         if (self.code_model != .default) {
             try zig_args.append("-mcmodel");

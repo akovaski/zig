@@ -244,7 +244,7 @@ pub const Object = struct {
         // TODO handle float ABI better- it should depend on the ABI portion of std.Target
         const float_abi: llvm.ABIType = .Default;
 
-        const abi_name: ?[*:0]const u8 = if (options.target_abi) |t| t.string().ptr else null;
+        const abi_name: ?[*:0]const u8 = if (options.target_abi) |t| @tagName(t) else null;
 
         const target_machine = llvm.TargetMachine.create(
             target,

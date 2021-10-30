@@ -1153,7 +1153,7 @@ pub fn create(gpa: *Allocator, options: InitOptions) !*Compilation {
         cache.hash.add(options.target.os.getVersionRange());
         cache.hash.add(options.is_native_os);
         cache.hash.add(options.target.abi);
-        cache.hash.addOptionalBytes(if (options.target_abi) |t| t.string() else null);
+        cache.hash.addOptionalBytes(if (options.target_abi) |t| @tagName(t) else null);
         cache.hash.add(ofmt);
         cache.hash.add(pic);
         cache.hash.add(pie);
@@ -3303,7 +3303,7 @@ pub fn addCCArgs(
             }
 
             if (comp.bin_file.options.target_abi) |target_abi| {
-                try argv.append(try std.fmt.allocPrint(arena, "-mabi={s}", .{target_abi.string()}));
+                try argv.append(try std.fmt.allocPrint(arena, "-mabi={s}", .{@tagName(target_abi)}));
             }
 
             if (comp.haveFramePointer()) {
@@ -3446,7 +3446,7 @@ pub fn addCCArgs(
             }
 
             if (comp.bin_file.options.target_abi) |target_abi| {
-                try argv.append(try std.fmt.allocPrint(arena, "-mabi={s}", .{target_abi.string()}));
+                try argv.append(try std.fmt.allocPrint(arena, "-mabi={s}", .{@tagName(target_abi)}));
             }
 
             if (target_util.clangAssemblerSupportsMcpuArg(target)) {
@@ -4370,7 +4370,7 @@ fn updateStage1Module(comp: *Compilation, main_progress_node: *std.Progress.Node
         .is_native_cpu = false, // Only true when bootstrapping the compiler.
         .llvm_cpu_name = if (target.cpu.model.llvm_name) |s| s.ptr else null,
         .llvm_cpu_features = comp.bin_file.options.llvm_cpu_features.?,
-        .llvm_target_abi = if (comp.bin_file.options.target_abi) |t| t.string().ptr else null,
+        .llvm_target_abi = if (comp.bin_file.options.target_abi) |t| @tagName(t) else null,
     };
 
     comp.stage1_cache_manifest = &man;
