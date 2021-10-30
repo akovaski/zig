@@ -576,10 +576,10 @@ pub const Target = struct {
                 const has_f = riscv.featureSetHas(features, .f);
                 const has_d = riscv.featureSetHas(features, .d);
                 return switch (target_abi) {
-                    .ilp32e => if (has_e) void{} else error.FeatureAbiMismatch,
-                    .ilp32 => if (!has_e) void{} else error.FeatureAbiMismatch,
-                    .ilp32f => if (!has_e and has_f) void{} else error.FeatureAbiMismatch,
-                    .ilp32d => if (!has_e and has_d) void{} else error.FeatureAbiMismatch,
+                    .ilp32e => if (has_e) {} else error.FeatureAbiMismatch,
+                    .ilp32 => if (!has_e) {} else error.FeatureAbiMismatch,
+                    .ilp32f => if (!has_e and has_f) {} else error.FeatureAbiMismatch,
+                    .ilp32d => if (!has_e and has_d) {} else error.FeatureAbiMismatch,
                     else => error.ArchAbiMismatch,
                 };
             }
@@ -596,9 +596,9 @@ pub const Target = struct {
                 const has_f = riscv.featureSetHas(features, .f);
                 const has_d = riscv.featureSetHas(features, .d);
                 return switch (target_abi) {
-                    .lp64 => void{},
-                    .lp64f => if (has_f) void{} else error.FeatureAbiMismatch,
-                    .lp64d => if (has_d) void{} else error.FeatureAbiMismatch,
+                    .lp64 => {},
+                    .lp64f => if (has_f) {} else error.FeatureAbiMismatch,
+                    .lp64d => if (has_d) {} else error.FeatureAbiMismatch,
                     else => error.ArchAbiMismatch,
                 };
             }

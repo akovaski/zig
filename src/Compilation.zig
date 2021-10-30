@@ -1153,7 +1153,7 @@ pub fn create(gpa: *Allocator, options: InitOptions) !*Compilation {
         cache.hash.add(options.target.os.getVersionRange());
         cache.hash.add(options.is_native_os);
         cache.hash.add(options.target.abi);
-        cache.hash.addBytes(if (options.target_abi) |t| t.string() else ".");
+        cache.hash.addOptionalBytes(if (options.target_abi) |t| t.string() else null);
         cache.hash.add(ofmt);
         cache.hash.add(pic);
         cache.hash.add(pie);
